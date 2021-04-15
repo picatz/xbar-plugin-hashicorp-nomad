@@ -19,16 +19,20 @@ echo "---"
 echo "Nomad Address | font=Courier | size=10"
 echo "$NOMAD_ADDR | href=$NOMAD_ADDR"
 echo "---"
-NOMAD_VERSION=$(/usr/local/bin/nomad version | /usr/bin/awk '{print $2}')
 if [ /usr/local/bin/nomad status | grep -q "No running jobs" ]; then
   echo "No running jobs"
 else
-  NOMAD_STATUS=$(/usr/local/bin/nomad status | tail -n 1)
-  JOB_COUNT=$(/usr/local/bin/nomad status | tail -n 1 | wc -l | awk '{print $1}')
+  NOMAD_STATUS=$(/usr/local/bin/nomad status | tail -n +2)
+  JOB_COUNT=$(/usr/local/bin/nomad status | tail -n +2 | wc -l | awk '{print $1}')
 
   echo "$JOB_COUNT jobs"
-  /usr/local/bin/nomad status | tail -n 1 | while read JOB; do
+  /usr/local/bin/nomad status | tail -n +2 | while read JOB; do
     JOB_ID=$(echo $JOB | /usr/bin/awk '{print $1}')
-    echo "--$JOB_ID | href=$NOMAD_ADDR/ui/jobs/$JOB_ID"
+    JOB_STATUS=$(echo $JOB | /usr/bin/awk '{print $4}')
+    if [ "$JOB_STATUS" = "running" ]; then
+      echo "--🟢 $JOB_ID | href=$NOMAD_ADDR/ui/jobs/$JOB_ID"
+    else
+      echo "--🔴 $JOB_ID | href=$NOMAD_ADDR/ui/jobs/$JOB_ID"
+    fi
   done
 fi
